@@ -12,37 +12,53 @@ struct ResultsView: View {
     @Binding var text: String
     let kaomojis : [Kaomoji]
     let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
+        GridItem(.flexible(), spacing: 0),
+        GridItem(.flexible(), spacing: 0),
         GridItem(.flexible())
     ]
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 20) {
-                // Header
-                Group {
-                    Text("Icon").bold()
-                    Text("Description").bold()
-                    Text("Insert").bold()
-                }
-                
-                // Data Rows
-                ForEach(kaomojis.indices, id: \.self) { index in
-                    Text(kaomojis[index].text)
-                    Text(kaomojis[index].description)
-                    Button(action: {
-                        Task {
-                            await enhanceText(kaomoji: kaomojis[index].text, because: kaomojis[index].description)
+            LazyVGrid(columns: columns, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                Section(header: headerView) {
+                    ForEach(kaomojis.indices, id: \.self) { index in
+                        let rowColor = index % 2 == 0 ? Color.clear : Color.secondary.opacity(0.05)
+                        Text(kaomojis[index].text)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.vertical, 12)
+                            .background(rowColor)
+                        Text(kaomojis[index].description)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.vertical, 12)
+                            .background(rowColor)
+                        Button(action: {
+                            Task {
+                                await enhanceText(kaomoji: kaomojis[index].text, because: kaomojis[index].description)
+                            }
+                        }) {
+                            Image(systemName: "plus")
                         }
-                    }) {
-                        Image(systemName: "plus")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.vertical, 12)
+                        .background(rowColor)
                     }
                 }
+                
             }
         }
     }
     
+    var headerView: some View {
+        return HStack {
+            Text("Icon").bold().frame(maxWidth: .infinity)
+            Text("Description").bold().frame(maxWidth: .infinity)
+            Text("Insert").bold().frame(maxWidth: .infinity)
+        }
+        
+            .padding()
+            .background(.ultraThinMaterial)
+            .zIndex(1)
+    }
 
     func enhanceText(kaomoji: String, because description: String) async {
         do {

@@ -41,13 +41,10 @@ struct IntelligentUIView: View {
                 userText = "I love tacos. I am sad when I can’t see them."
             }
             
-            ScrollView {
-                Text(status)
-                    .padding()
-                if let generatedKaomojisList = kaomojiList {
-                    ResultsView(text: $userText, kaomojis: generatedKaomojisList.kaomojis)
-                }
-                
+            Text(status)
+                .padding()
+            if let generatedKaomojisList = kaomojiList {
+                ResultsView(text: $userText, kaomojis: generatedKaomojisList.kaomojis)
             }
             
             Button("Generate Kaomojis") {

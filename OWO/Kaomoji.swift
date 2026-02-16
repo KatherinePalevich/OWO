@@ -20,6 +20,6 @@ struct Kaomoji: Equatable {
     @Guide(description: "The string version of the kaomoji")
     let text: String
     
-    @Guide(description: "The explanation for what the kaomoji is supposed to convey")
+    @Guide(description: "The explanation for what the kaomoji is supposed to convey. Limit length to around 10 words")
     let description: String
 }
