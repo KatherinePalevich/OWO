@@ -22,7 +22,4 @@ struct Kaomoji: Equatable {
     
     @Guide(description: "The explanation for what the kaomoji is supposed to convey")
     let description: String
-    
-    @Guide(description: "The exact character placement for the emoji to be inserted within the given text. 0 means the first character, 1 means the second, and so on.")
-    let placement: Int
 }

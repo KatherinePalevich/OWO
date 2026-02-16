@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FoundationModels
 
 struct ResultsView: View {
     @Binding var text: String
@@ -31,7 +32,9 @@ struct ResultsView: View {
                     Text(kaomojis[index].text)
                     Text(kaomojis[index].description)
                     Button(action: {
-                        insertKaomoj(kaomoji: kaomojis[index].text, at: kaomojis[index].placement)
+                        Task {
+                            await enhanceText(kaomoji: kaomojis[index].text, because: kaomojis[index].description)
+                        }
                     }) {
                         Image(systemName: "plus")
                     }
@@ -40,20 +43,39 @@ struct ResultsView: View {
         }
     }
     
-    func insertKaomoj(kaomoji: String, at index: Int) {
-        let targetIndex = text.index(text.startIndex, offsetBy: index)
-        text.insert(contentsOf: kaomoji, at: targetIndex)
+
+    func enhanceText(kaomoji: String, because description: String) async {
+        do {
+            let session = LanguageModelSession {
+                "Your job is to insert the kaomoji string \(kaomoji) one time into the text based on the \(description) reasoning. Include proper spacing around the kaomoji and text"
+            }
+            
+            let result = try await session.respond(generating: EnhancedText.self) {
+                "Insert the kaomoji given this text: \(text)"
+            }
+            text = result.content.resultText
+            
+        } catch {
+            // Get more detailed error info
+            print("Full error: \(error)")
+            print("Error type: \(type(of: error))")
+            
+            // Check if it's a specific generation error
+            if let genError = error as? LanguageModelSession.GenerationError {
+                print("Generation error details: \(genError)")
+            }
+        }
     }
 }
 
 #Preview {
     @Previewable @State var textPreview : String = "Hello world"
     let kaomojisPreview : [Kaomoji] = [
-        Kaomoji(text: "(๑♡⌓♡๑)", description: "Heart-eyes/Infatuation", placement: 12),
-        Kaomoji(text: "(っ˘ڡ˘ς)", description: "Delicious/Eating", placement: 13),
-        Kaomoji(text: "٩(◕‿◕)۶", description: "Pure joy", placement: 34),
-        Kaomoji(text: "(ಥ﹏ಥ)", description: "Crying/Despair", placement: 48),
-        Kaomoji(text: "(´。＿。｀)", description: "Dejected/Pouting", placement: 70)
+        Kaomoji(text: "(๑♡⌓♡๑)", description: "Heart-eyes/Infatuation"),
+        Kaomoji(text: "(っ˘ڡ˘ς)", description: "Delicious/Eating"),
+        Kaomoji(text: "٩(◕‿◕)۶", description: "Pure joy"),
+        Kaomoji(text: "(ಥ﹏ಥ)", description: "Crying/Despair"),
+        Kaomoji(text: "(´。＿。｀)", description: "Dejected/Pouting")
     ]
     ResultsView(text: $textPreview, kaomojis: kaomojisPreview)
 }

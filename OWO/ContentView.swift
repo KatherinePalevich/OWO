@@ -37,6 +37,9 @@ struct IntelligentUIView: View {
                             .stroke(Color.gray, lineWidth: 1)
                     )
             }
+            Button("Use Demo") {
+                userText = "I love tacos. I am sad when I can’t see them."
+            }
             
             ScrollView {
                 Text(status)
@@ -61,7 +64,7 @@ struct IntelligentUIView: View {
         
         do {
             let session = LanguageModelSession {
-                "Your job is to generate five different Kaomojis for the user based on some input text. Kaomojis look like (๑>◡<๑), (◕‿◕✿), ~(˘▾˘~), :), or :D. Do not use emojis but instead give examples of regular text that when combined in various ways resembles other objects. Avoid using the example kaomojis. When creating the description for each generated kaomoji, reference a relevant part of the user text that influenced the resulting kaomoji. The text will always be non empty"
+                "Your job is to generate five different Kaomojis for the user based on some input text. Kaomojis look like (๑>◡<๑), (◕‿◕✿), ~(˘▾˘~), :), or :D. Do not use emojis but instead give examples of regular text that when combined in various ways resembles other objects. Avoid using the example kaomojis. When creating the description for each generated kaomoji, reference a relevant part of the user text that influenced the resulting kaomoji. Avoid duplicate characters to create a diverse result. The text will always be non empty"
             }
             
             let result = try await session.respond(generating: KaomojiList.self) {
