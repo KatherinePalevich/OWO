@@ -9,8 +9,6 @@ import SwiftUI
 import FoundationModels
 
 struct ContentView: View {
-    @State private var status: String = "Ready"
-    
     var body: some View {
         GenerativeView()
     }
@@ -21,18 +19,30 @@ struct IntelligentUIView: View {
     @State private var status: String = "Ready"
     @State private var userText: String = ""
     @State var kaomojiList: KaomojiList?
+    let placeholder = "Enter text here..."
     
     var body: some View {
         VStack(spacing: 20) {
-            TextEditor(text: $userText)
-                .border(.gray)
-                .textFieldStyle(.roundedBorder)
-                .padding()
+            ZStack(alignment: .topLeading) {
+                if userText.isEmpty {
+                    Text(placeholder)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 12)
+                }
+                TextEditor(text: $userText)
+                    .textFieldStyle(.roundedBorder)
+                    .opacity(userText.isEmpty ? 0.5 : 1)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+            }
+            
             ScrollView {
                 Text(status)
                     .padding()
                 if let generatedKaomojisList = kaomojiList {
-                    KaomojiGrid(text: $userText, kaomojis: generatedKaomojisList.kaomojis)
+                    ResultsView(text: $userText, kaomojis: generatedKaomojisList.kaomojis)
                 }
                 
             }
@@ -70,45 +80,6 @@ struct IntelligentUIView: View {
             if let genError = error as? LanguageModelSession.GenerationError {
                 print("Generation error details: \(genError)")
             }
-        }
-    }
-    
-    struct KaomojiGrid: View {
-        @Binding var text: String
-        let kaomojis : [Kaomoji]
-        let columns = [
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible())
-        ]
-        
-        var body: some View {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 20) {
-                    // Header
-                    Group {
-                        Text("Icon").bold()
-                        Text("Description").bold()
-                        Text("Insert").bold()
-                    }
-                    
-                    // Data Rows
-                    ForEach(kaomojis.indices, id: \.self) { index in
-                        Text(kaomojis[index].text)
-                        Text(kaomojis[index].description)
-                        Button(action: {
-                            insertKaomoj(kaomoji: kaomojis[index].text, at: kaomojis[index].placement)
-                        }) {
-                            Image(systemName: "plus")
-                        }
-                    }
-                }
-            }
-        }
-        
-        func insertKaomoj(kaomoji: String, at index: Int) {
-            let targetIndex = text.index(text.startIndex, offsetBy: index)
-            text.insert(contentsOf: kaomoji, at: targetIndex)
         }
     }
     
