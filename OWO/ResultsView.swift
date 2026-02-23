@@ -11,6 +11,7 @@ import FoundationModels
 struct ResultsView: View {
     @Binding var text: String
     let kaomojis : [Kaomoji]
+    @State private var insertingIndex: Int? = nil
     let columns = [
         GridItem(.flexible(), spacing: 0),
         GridItem(.flexible(), spacing: 0),
@@ -31,12 +32,19 @@ struct ResultsView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(.vertical, 12)
                             .background(rowColor)
-                        Button(action: {
-                            Task {
-                                await enhanceText(kaomoji: kaomojis[index].text, because: kaomojis[index].description)
+                        Group {
+                            if insertingIndex == index {
+                                ProgressView()
+                            } else {
+                                Button(action: {
+                                    Task {
+                                        await enhanceText(index: index, kaomoji: kaomojis[index].text, because: kaomojis[index].description)
+                                    }
+                                }) {
+                                    Image(systemName: "plus")
+                                }
+                                .disabled(insertingIndex != nil)
                             }
-                        }) {
-                            Image(systemName: "plus")
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(.vertical, 12)
@@ -60,14 +68,32 @@ struct ResultsView: View {
             .zIndex(1)
     }
 
-    func enhanceText(kaomoji: String, because description: String) async {
+    func enhanceText(index: Int, kaomoji: String, because description: String) async {
+        insertingIndex = index
+        defer { insertingIndex = nil }
+        
         do {
             let session = LanguageModelSession {
-                "Your job is to insert the kaomoji string \(kaomoji) one time into the text based on the \(description) reasoning. Include proper spacing around the kaomoji and text"
+                """
+                Your job is to insert the kaomoji string \(kaomoji) into the provided text.
+                
+                CRITICAL RULES:
+                1. You MUST NOT delete, modify, or replace ANY characters from the input text.
+                2. The input text may already contain other kaomojis or symbols; you MUST preserve them exactly as they are.
+                3. The kaomoji to add \(kaomoji) MUST be inserted EXACTLY as provided. Do not alter, simplify, modify, or replace any characters within the kaomoji itself. It is a literal string.
+                4. Your output MUST contain the exact same characters as the input, in the exact same order, with only the NEW kaomoji added at the most appropriate location.
+                5. Add appropriate spacing around the new kaomoji.
+                """
             }
             
             let result = try await session.respond(generating: EnhancedText.self) {
-                "Insert the kaomoji given this text: \(text)"
+                """
+                Original text: \(text)
+                Kaomoji to add: \(kaomoji)
+                Reasoning for placement: \(description)
+                
+                Task: Generate the resultText by adding the kaomoji to the original text while strictly following the preservation rules.
+                """
             }
             text = result.content.resultText
             

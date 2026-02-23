@@ -60,8 +60,8 @@ struct IntelligentUIView: View {
         status = "Generating..."
         
         do {
-            let session = LanguageModelSession {
-                "Your job is to generate five different Kaomojis for the user based on some input text. Kaomojis look like (๑>◡<๑), (◕‿◕✿), ~(˘▾˘~), :), or :D. Do not use emojis but instead give examples of regular text that when combined in various ways resembles other objects. Avoid using the example kaomojis. When creating the description for each generated kaomoji, reference a relevant part of the user text that influenced the resulting kaomoji. Avoid duplicate characters to create a diverse result. The text will always be non empty"
+            let session = LanguageModelSession(tools: [SentimentTool()]) {
+                "Your job is to generate five different Kaomojis for the user based on some input text. Kaomojis look like (๑>◡<๑), (◕‿◕✿), ~(˘▾˘~), :), or :D. Do not use emojis but instead give examples of regular text that when combined in various ways resembles other objects. Avoid using the example kaomojis. When creating the description for each generated kaomoji, reference a relevant part of the user text that influenced the resulting kaomoji. Avoid duplicate characters to create a diverse result. The text will always be non empty. Before generating, you should use the get_sentiment_score tool to verify the emotional tone of the user's text to ensure your kaomojis are perfectly matched."
             }
             
             let result = try await session.respond(generating: KaomojiList.self) {
