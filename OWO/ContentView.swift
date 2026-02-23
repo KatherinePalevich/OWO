@@ -19,6 +19,9 @@ struct IntelligentUIView: View {
     @State private var status: String = "Ready"
     @State private var userText: String = ""
     @State var kaomojiList: KaomojiList?
+    @State private var history: [String] = []
+    @State private var isGenerating: Bool = false
+    @FocusState private var isTextEditorFocused: Bool
     let placeholder = "Enter text here..."
     
     var body: some View {
@@ -31,33 +34,65 @@ struct IntelligentUIView: View {
                 }
                 TextEditor(text: $userText)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isTextEditorFocused)
                     .opacity(userText.isEmpty ? 0.5 : 1)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.gray, lineWidth: 1)
                     )
             }
-            Button("Use Demo") {
-                userText = "I love tacos. I am sad when I can’t see them."
-            }
             
-            Text(status)
-                .padding()
-            if let generatedKaomojisList = kaomojiList {
-                ResultsView(text: $userText, kaomojis: generatedKaomojisList.kaomojis)
-            }
-            
-            Button("Generate Kaomojis") {
-                Task {
-                    await generate(with: userText)
+            if isTextEditorFocused {
+                HStack {
+                    Spacer()
+                    Button("Done Editing") {
+                        saveSnapshot()
+                        isTextEditorFocused = false
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
-            }.disabled(userText.isEmpty)
+            }
+            Button("Use Demo") {
+                userText = "I'm so excited to finally start our sunny garden picnic today! Wait, why is there a rubber ducky wearing a tiny hat on top of the sandwich platter? It turns out the cat decided to host his own fancy tea party while we weren't looking!"
+            }
+            
+            if let generatedKaomojisList = kaomojiList {
+                ResultsView(text: $userText, kaomojis: generatedKaomojisList.kaomojis, onBeforeUpdate: {
+                    saveSnapshot()
+                })
+            }
+            
+            HStack(spacing: 20) {
+                Button(action: undo) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .padding()
+                }
+                .disabled(history.isEmpty)
+                
+                Button(action: {
+                    saveSnapshot()
+                    Task {
+                        await generate(with: userText)
+                    }
+                }) {
+                    if isGenerating {
+                        ProgressView()
+                            .padding(.horizontal, 10)
+                    } else {
+                        Text("Generate Kaomojis")
+                    }
+                }
+                .disabled(userText.isEmpty || isGenerating)
+                .buttonStyle(.borderedProminent)
+            }
         }
         .padding()
     }
     
     func generate(with text: String) async {
+        isGenerating = true
         status = "Generating..."
+        defer { isGenerating = false }
         
         do {
             let session = LanguageModelSession(tools: [SentimentTool()]) {
@@ -83,6 +118,16 @@ struct IntelligentUIView: View {
         }
     }
     
+    func saveSnapshot() {
+        if history.last != userText {
+            history.append(userText)
+        }
+    }
+    
+    func undo() {
+        guard !history.isEmpty else { return }
+        userText = history.removeLast()
+    }
     
 }
 

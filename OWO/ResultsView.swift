@@ -11,6 +11,7 @@ import FoundationModels
 struct ResultsView: View {
     @Binding var text: String
     let kaomojis : [Kaomoji]
+    var onBeforeUpdate: (() -> Void)? = nil
     @State private var insertingIndex: Int? = nil
     let columns = [
         GridItem(.flexible(), spacing: 0),
@@ -95,6 +96,7 @@ struct ResultsView: View {
                 Task: Generate the resultText by adding the kaomoji to the original text while strictly following the preservation rules.
                 """
             }
+            onBeforeUpdate?()
             text = result.content.resultText
             
         } catch {
