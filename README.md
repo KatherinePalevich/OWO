@@ -2,6 +2,9 @@
 
 OWO is a modern iOS and macOS application that uses on-device Apple Intelligence to generate perfectly matched Kaomojis for your text. It analyzes the sentiment and context of your input to suggest expressive symbols like `(๑>◡<๑)` or `(ಥ﹏ಥ)` and helps you insert them seamlessly.
 
+<img width="360" alt="OWO Demo" src="https://github.com/user-attachments/assets/592a57a4-a054-4891-a3d9-b20c38856935" />
+
+
 ## ✨ Features
 
 - **Generative Kaomojis**: Uses a system language model to create five diverse Kaomojis tailored to your specific text context.
