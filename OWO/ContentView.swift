@@ -62,7 +62,7 @@ struct IntelligentUIView: View {
                 }
             }
             Button("Use Demo") {
-                userText = "I'm so excited to finally start our sunny garden picnic today! Wait, why is there a rubber ducky wearing a tiny hat on top of the sandwich platter? It turns out the cat decided to host his own fancy tea party while we weren't looking!"
+                userText = "I'm so incredibly happy that our picnic is finally happening under this beautiful sun! However, I'm actually quite angry and frustrated that you completely ignored my request for eclairs! It's so inconsiderate! And I'm incredibly jealous of the neighbor's perfect golden picnic set; I'm so envious that they always have the best gear. It makes me a little blue to think about how much effort I put into the sandwiches that no one is eating. Wait, why is there a troupe of squirrels wearing tiny capes and dancing around the fruit salad? Oh no, those squirrels are looking at me with such menace that I'm actually terrified they're going to swarm me! I'm genuinely scared!"
             }
             
             if let generatedKaomojisList = kaomojiList {

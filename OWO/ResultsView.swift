@@ -158,10 +158,16 @@ struct SentimentBadge: View {
                 Text(kaomoji.sentiment.rawValue.capitalized)
                     .font(.headline)
                     .foregroundColor(color(for: kaomoji.sentiment))
-                Text(kaomoji.description)
-                    .font(.subheadline)
+                
+                ScrollView {
+                    Text(kaomoji.description)
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 60) // Roughly 3 lines of subheadline text
             }
             .padding()
+            .frame(width: 250)
             .presentationCompactAdaptation(.popover)
         }
     }
