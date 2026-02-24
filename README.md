@@ -2,7 +2,9 @@
 
 OWO uses on-device Apple Intelligence to generate perfectly matched Kaomojis for your text. It analyzes the sentiment and context of your input to suggest expressive symbols like `(๑>◡<๑)` or `(ಥ﹏ಥ)` and helps you insert them seamlessly.
 
-<img width="360" alt="OWO Demo" src="https://github.com/user-attachments/assets/592a57a4-a054-4891-a3d9-b20c38856935" />
+| View Sentiment Profile | Understand Sentiment Reasoning | Insert Kaomoji |
+| :--- | :--- | :--- |
+| <img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 Pro - 2026-02-23 at 17 15 12" src="https://github.com/user-attachments/assets/ab68856e-df7c-4469-a608-ea0434e2fa1b" />| <img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 Pro - 2026-02-23 at 17 15 22" src="https://github.com/user-attachments/assets/db1da57e-e4b1-4c6b-81b0-13963e532a8a" /> | <img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 Pro - 2026-02-23 at 17 16 31" src="https://github.com/user-attachments/assets/13af33fb-a8a4-47ed-b471-b92f31fc092b" /> |
 
 
 ## ✨ Features
