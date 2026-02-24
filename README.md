@@ -1,4 +1,5 @@
-# OWO - The Intelligent Kaomoji Generator
+# <img width="80" src="https://github.com/user-attachments/assets/bf56e5cc-abc5-4ebe-ac28-c6709eed829f"> - The Intelligent Kaomoji Generator 
+
 
 OWO uses on-device Apple Intelligence to generate perfectly matched Kaomojis for your text. It analyzes the sentiment and context of your input to suggest expressive symbols like `(๑>◡<๑)` or `(ಥ﹏ಥ)` and helps you insert them seamlessly.
 
