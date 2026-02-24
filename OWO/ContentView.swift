@@ -10,9 +10,18 @@ import FoundationModels
 
 struct ContentView: View {
     var body: some View {
-        GenerativeView()
+        TabView {
+            GenerativeView()
+                .tabItem {
+                    Label("Kaomoji", systemImage: "face.smiling")
+                }
+            
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
+        }
     }
-    
 }
 
 struct IntelligentUIView: View {
@@ -96,7 +105,7 @@ struct IntelligentUIView: View {
         
         do {
             let session = LanguageModelSession(tools: [SentimentTool()]) {
-                "Your job is to generate five different Kaomojis for the user based on some input text. Kaomojis look like (๑>◡<๑), (◕‿◕✿), ~(˘▾˘~), :), or :D. Do not use emojis but instead give examples of regular text that when combined in various ways resembles other objects. Avoid using the example kaomojis. When creating the description for each generated kaomoji, reference a relevant part of the user text that influenced the resulting kaomoji. Avoid duplicate characters to create a diverse result. The text will always be non empty. Before generating, you should use the get_sentiment_score tool to verify the emotional tone of the user's text to ensure your kaomojis are perfectly matched."
+                "Your job is to generate five different Kaomojis for the user based on some input text. Kaomojis look like (๑>◡<๑), (◕‿◕✿), ~(˘▾˘~), :), or :D. Do not use emojis but instead give examples of regular text that when combined in various ways resembles other objects. Avoid using the example kaomojis. When creating the description for each generated kaomoji, reference a relevant part of the user text that influenced the resulting kaomoji. Avoid duplicate characters to create a diverse result. The text will always be non empty. Before generating, you should use the get_sentiment_score tool to verify the emotional tone of the user's text to ensure your kaomojis are perfectly matched. For each kaomoji, assign one of the following sentiments: anger, joy, jealousy, sadness, confusion, fear."
             }
             
             let result = try await session.respond(generating: KaomojiList.self) {

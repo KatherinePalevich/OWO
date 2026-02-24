@@ -9,6 +9,16 @@ import Foundation
 import FoundationModels
 
 @Generable
+enum Sentiment: String, CaseIterable, Equatable {
+    case anger
+    case joy
+    case jealousy
+    case sadness
+    case confusion
+    case fear
+}
+
+@Generable
 struct KaomojiList: Equatable {
     @Guide(description: "A list of kaomojis")
     @Guide(.count(5))
@@ -22,4 +32,7 @@ struct Kaomoji: Equatable {
     
     @Guide(description: "The explanation for what the kaomoji is supposed to convey. Limit length to around 10 words")
     let description: String
+
+    @Guide(description: "The sentiment of the kaomoji")
+    let sentiment: Sentiment
 }

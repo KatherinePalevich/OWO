@@ -13,6 +13,7 @@ struct ResultsView: View {
     let kaomojis : [Kaomoji]
     var onBeforeUpdate: (() -> Void)? = nil
     @State private var insertingIndex: Int? = nil
+
     let columns = [
         GridItem(.flexible(), spacing: 0),
         GridItem(.flexible(), spacing: 0),
@@ -21,52 +22,58 @@ struct ResultsView: View {
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 0, pinnedViews: [.sectionHeaders]) {
-                Section(header: headerView) {
-                    ForEach(kaomojis.indices, id: \.self) { index in
-                        let rowColor = index % 2 == 0 ? Color.clear : Color.secondary.opacity(0.05)
-                        Text(kaomojis[index].text)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .padding(.vertical, 12)
-                            .background(rowColor)
-                        Text(kaomojis[index].description)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .padding(.vertical, 12)
-                            .background(rowColor)
-                        Group {
-                            if insertingIndex == index {
-                                ProgressView()
-                            } else {
-                                Button(action: {
-                                    Task {
-                                        await enhanceText(index: index, kaomoji: kaomojis[index].text, because: kaomojis[index].description)
+            VStack(spacing: 16) {
+                SentimentBreakdownHeader(kaomojis: kaomojis)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                
+                LazyVGrid(columns: columns, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    Section(header: headerView) {
+                        ForEach(kaomojis.indices, id: \.self) { index in
+                            let rowColor = index % 2 == 0 ? Color.clear : Color.secondary.opacity(0.05)
+                            Text(attributedKaomoji(kaomojis[index]))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding(.vertical, 12)
+                                .shadow(color: color(for: kaomojis[index].sentiment).opacity(0.5), radius: 8)
+                                .background(rowColor)
+                            
+                            SentimentBadge(kaomoji: kaomojis[index])
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding(.vertical, 12)
+                                .background(rowColor)
+                            Group {
+                                if insertingIndex == index {
+                                    ProgressView()
+                                } else {
+                                    Button(action: {
+                                        Task {
+                                            await enhanceText(index: index, kaomoji: kaomojis[index].text, because: kaomojis[index].description)
+                                        }
+                                    }) {
+                                        Image(systemName: "plus")
                                     }
-                                }) {
-                                    Image(systemName: "plus")
+                                    .disabled(insertingIndex != nil)
                                 }
-                                .disabled(insertingIndex != nil)
                             }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.vertical, 12)
+                            .background(rowColor)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.vertical, 12)
-                        .background(rowColor)
                     }
                 }
-                
             }
         }
     }
-    
+
     var headerView: some View {
         return HStack {
             Text("Icon").bold().frame(maxWidth: .infinity)
-            Text("Description").bold().frame(maxWidth: .infinity)
+            Text("Sentiment").bold().frame(maxWidth: .infinity)
             Text("Insert").bold().frame(maxWidth: .infinity)
         }
-        
-            .padding()
-            .background(.ultraThinMaterial)
-            .zIndex(1)
+        .padding()
+        .background(.ultraThinMaterial)
+        .zIndex(1)
     }
 
     func enhanceText(index: Int, kaomoji: String, because description: String) async {
@@ -110,16 +117,135 @@ struct ResultsView: View {
             }
         }
     }
+
+    func attributedKaomoji(_ kaomoji: Kaomoji) -> AttributedString {
+        var attributed = AttributedString(kaomoji.text)
+        attributed.foregroundColor = color(for: kaomoji.sentiment)
+        return attributed
+    }
+
+    func color(for sentiment: Sentiment) -> Color {
+        switch sentiment {
+        case .anger: return .red
+        case .joy: return .yellow
+        case .jealousy: return .green
+        case .sadness: return .blue
+        case .confusion, .fear: return .purple
+        }
+    }
+}
+
+struct SentimentBadge: View {
+    let kaomoji: Kaomoji
+    @State private var showDetail = false
+
+    var body: some View {
+        Button(action: { showDetail.toggle() }) {
+            Text(kaomoji.sentiment.rawValue.capitalized)
+                .font(.caption2)
+                .bold()
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(color(for: kaomoji.sentiment).opacity(0.2))
+                )
+                .foregroundColor(color(for: kaomoji.sentiment))
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showDetail) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(kaomoji.sentiment.rawValue.capitalized)
+                    .font(.headline)
+                    .foregroundColor(color(for: kaomoji.sentiment))
+                Text(kaomoji.description)
+                    .font(.subheadline)
+            }
+            .padding()
+            .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    func color(for sentiment: Sentiment) -> Color {
+        switch sentiment {
+        case .anger: return .red
+        case .joy: return .yellow
+        case .jealousy: return .green
+        case .sadness: return .blue
+        case .confusion, .fear: return .purple
+        }
+    }
+}
+
+struct SentimentBreakdownHeader: View {
+    let kaomojis: [Kaomoji]
+
+    var sentimentCounts: [Sentiment: Int] {
+        var counts: [Sentiment: Int] = [:]
+        for k in kaomojis {
+            counts[k.sentiment, default: 0] += 1
+        }
+        return counts
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Sentiment Profile")
+                .font(.caption)
+                .bold()
+                .foregroundColor(.secondary)
+            
+            HStack(spacing: 2) {
+                ForEach(Sentiment.allCases, id: \.self) { sentiment in
+                    if let count = sentimentCounts[sentiment], count > 0 {
+                        Rectangle()
+                            .fill(color(for: sentiment))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 8)
+                            .cornerRadius(4)
+                    }
+                }
+            }
+            .clipShape(Capsule())
+            
+            HStack {
+                ForEach(Sentiment.allCases, id: \.self) { sentiment in
+                    if let count = sentimentCounts[sentiment], count > 0 {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(color(for: sentiment))
+                                .frame(width: 6, height: 6)
+                            Text("\(sentiment.rawValue.capitalized)")
+                                .font(.system(size: 10))
+                        }
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.secondary.opacity(0.1))
+        .cornerRadius(12)
+    }
+
+    func color(for sentiment: Sentiment) -> Color {
+        switch sentiment {
+        case .anger: return .red
+        case .joy: return .yellow
+        case .jealousy: return .green
+        case .sadness: return .blue
+        case .confusion, .fear: return .purple
+        }
+    }
 }
 
 #Preview {
     @Previewable @State var textPreview : String = "Hello world"
     let kaomojisPreview : [Kaomoji] = [
-        Kaomoji(text: "(๑♡⌓♡๑)", description: "Heart-eyes/Infatuation"),
-        Kaomoji(text: "(っ˘ڡ˘ς)", description: "Delicious/Eating"),
-        Kaomoji(text: "٩(◕‿◕)۶", description: "Pure joy"),
-        Kaomoji(text: "(ಥ﹏ಥ)", description: "Crying/Despair"),
-        Kaomoji(text: "(´。＿。｀)", description: "Dejected/Pouting")
+        Kaomoji(text: "(๑♡⌓♡๑)", description: "Heart-eyes/Infatuation", sentiment: .joy),
+        Kaomoji(text: "(っ˘ڡ˘ς)", description: "Delicious/Eating", sentiment: .joy),
+        Kaomoji(text: "٩(◕‿◕)۶", description: "Pure joy", sentiment: .joy),
+        Kaomoji(text: "(ಥ﹏ಥ)", description: "Crying/Despair", sentiment: .sadness),
+        Kaomoji(text: "(´。＿。｀)", description: "Dejected/Pouting", sentiment: .sadness)
     ]
     ResultsView(text: $textPreview, kaomojis: kaomojisPreview)
 }
